@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 
 class PostSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ['id', 'description', 'username','created_at','updated_at']

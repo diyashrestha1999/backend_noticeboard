@@ -2,9 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-# Create your models here.
+class BaseModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
 
 
-class Post(models.Model):
+class Post(BaseModel):
     user = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=255, blank=True)
