@@ -4,8 +4,12 @@ from noticeboard.models import Post
 from rest_framework.permissions import IsAdminUser
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.response import Response
-from .serializer import PostSerializer
+from rest_framework.views import APIView
+from rest_framework.exceptions import AuthenticationFailed
+from .serializer import *
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -35,13 +39,33 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = PostSerializer(user)
         return Response(serializer.data)
 
-    # def update(self, request, pk=None):
-    #     pass
-    #
-    # def partial_update(self, request, pk=None):
-    #     pass
-    #
-    # def destroy(self, request, pk=None):
-    #     pass
 
+class LoginView(APIView):
 
+    def post(self, request):
+        data = request.data
+        serializer = LoginSerializer(data=data)
+        if serializer.is_valid():
+            username = serializer.data['username']
+            password = serializer.data['password']
+
+            user = authenticate(username=username, password=password)
+
+            if user is None:
+                return Response({
+                    'status': 400,
+                    'message': 'user does not exit'
+                })
+            if not user.check_password(password):
+                return Response({
+                    'status': 400,
+                    'message': 'password is incorrect '
+                })
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            })
+        return Response({
+            'message': 'success'
+        })
